@@ -4,7 +4,9 @@ import { useStoreContext } from '../../utils/GlobalState';
 import { UPDATE_PRODUCTS } from '../../utils/actions';
 import ProductItem from '../ProductItem';
 import { QUERY_PRODUCTS } from '../../utils/queries';
+import { idbPromise } from "../../utils/helpers";
 import spinner from '../../assets/spinner.gif';
+
 
 function ProductList() {
 	// First call useStoreContext to retrieve current state from globalstate and dispatch method to update it	
@@ -17,14 +19,20 @@ function ProductList() {
 	// Runs immediately on load, passes function to update global state and needed data (data, dispatch)
 	// data will be undefined at first but will have useEffect run again since it exists
 	useEffect(() => {
+		// If data to be stored
 		if (data) {
 			// execute our dispatch function with our action object indicating the type of action and the data to set our state for products to
 			dispatch({
 				type: UPDATE_PRODUCTS,
 				products: data.products
 			});
+			
+			// Let's also take each product and save it to IndexedDB using helper function
+			data.products.forEach((product) => {
+				idbPromise('products', 'put', product);
+			});
 		}
-	}, [data, dispatch]);
+	}, [data, loading, dispatch]);
 
 	// Based on currentCategory value, will filter the products that have the correct currentCategory value
 	function filterProducts() {
